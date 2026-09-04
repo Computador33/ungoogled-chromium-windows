@@ -41,3 +41,16 @@ test('retries once when build execution throws', async () => {
     assert.equal(calls, 2);
     assert.equal(warnings.length, 1);
 });
+
+test('returns build failure code when execution throws twice', async () => {
+    let calls = 0;
+    const warnings = [];
+    const result = await runBuildWithRetry(async () => {
+        calls += 1;
+        throw new Error('persistent process failure');
+    }, msg => warnings.push(msg));
+
+    assert.equal(result, 1);
+    assert.equal(calls, 2);
+    assert.equal(warnings.length, 2);
+});
