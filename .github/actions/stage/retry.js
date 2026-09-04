@@ -18,7 +18,13 @@ export async function runBuildWithRetry(runBuild, warn) {
     }
     if (retCode !== 0 && retCode !== BUILD_TIMEOUT_EXIT_CODE) {
         warn(`Build failed with exit code ${retCode}. Retrying once to recover from transient failures.`);
-        retCode = await runBuild();
+        try {
+            retCode = await runBuild();
+        } catch (retryErr) {
+            const retryErrorText = retryErr instanceof Error ? retryErr.message : String(retryErr);
+            warn(`Build retry threw an error (${retryErrorText}). Treating this as a build failure.`);
+            return BUILD_FAILED_EXIT_CODE;
+        }
     }
     return retCode;
 }
