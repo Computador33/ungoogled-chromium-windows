@@ -39,10 +39,17 @@ async function run() {
         cwd: 'C:\\ungoogled-chromium-windows',
         ignoreReturnCode: true
     });
-    const retCode = await exec.exec('python', args, {
+    let retCode = await exec.exec('python', args, {
         cwd: 'C:\\ungoogled-chromium-windows',
         ignoreReturnCode: true
     });
+    if (retCode !== 0 && retCode !== BUILD_TIMEOUT_EXIT_CODE) {
+        core.warning(`Build failed with exit code ${retCode}. Retrying once to recover from transient failures.`);
+        retCode = await exec.exec('python', args, {
+            cwd: 'C:\\ungoogled-chromium-windows',
+            ignoreReturnCode: true
+        });
+    }
     if (retCode === 0) {
         core.setOutput('finished', true);
         const globber = await glob.create('C:\\ungoogled-chromium-windows\\build\\ungoogled-chromium*',
