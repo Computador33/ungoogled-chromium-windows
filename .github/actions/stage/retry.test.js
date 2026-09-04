@@ -25,3 +25,19 @@ test('does not retry timeout exit code', async () => {
     assert.equal(calls, 1);
     assert.equal(warnings.length, 0);
 });
+
+test('retries once when build execution throws', async () => {
+    let calls = 0;
+    const warnings = [];
+    const result = await runBuildWithRetry(async () => {
+        calls += 1;
+        if (calls === 1) {
+            throw new Error('transient process failure');
+        }
+        return 0;
+    }, msg => warnings.push(msg));
+
+    assert.equal(result, 0);
+    assert.equal(calls, 2);
+    assert.equal(warnings.length, 1);
+});
